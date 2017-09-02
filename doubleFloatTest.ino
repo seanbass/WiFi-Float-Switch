@@ -26,12 +26,25 @@ void setup() {
 
 //Setup HTTP Client - Send sensor data to server
 
-Serial.println("[HTTP] begin...\n");
 HTTPClient http;
-http.begin("http://192.168.0.108:3333");
-http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-http.POST("title=foo&body=bar&userId=1");
-http.writeToStream(&Serial);
+Serial.println("[HTTP] begin...\n");
+http.begin("http://192.168.0.108");
+//http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+//http.POST("title=foo&body=bar&userId=1");
+int httpCode = http.GET()
+if(httpCode > 0) {
+  // HTTP header has been send and Server response header has been handled
+  Serial.println("[HTTP] GET... code: %d\n", httpCode);
+
+  // file found at server
+  if(httpCode == HTTP_CODE_OK) {
+	String payload = http.getString();
+	Serial.println(payload);
+  }
+} else {
+  Serial.println("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+}
+//http.writeToStream(&Serial);
 http.end();
 
 
