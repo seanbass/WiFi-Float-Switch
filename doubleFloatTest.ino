@@ -6,23 +6,13 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>  
 
+#include <ESP8266HTTPClient.h>
+
 
 
 int lowPin = 5;    // D1
 int highPin = 2;   // D4
 int outPutPin = 4;  // D2
-
-
-char serverAddress[] = "http://192.168.0.108";  // server address
-int port = 3333;
-
-HttpClient client = HttpClient(serverAddress, port);
-int status = WL_IDLE_STATUS;
-String response;
-int statusCode = 0;
-
-
-
 
 
 
@@ -33,13 +23,6 @@ void setup() {
 
 
 
-  //HTTPClient http;
-  //http.begin("http://192.168.0.108:3333");
-  //http.addHeader("Content-Type", "application/json");
-  //http.POST("data: etc..");
-  //http.writeToStream(&Serial);
-  //http.end();
-
 
   
 
@@ -48,6 +31,18 @@ void setup() {
   WiFiManager wifiManager; // init wifi manager
   wifiManager.autoConnect("AutoConnectAP");
   Serial.println("Connected..");
+
+
+HTTPClient http;
+http.begin("http://192.168.0.108:3333");
+http.addHeader("Content-Type", "application/json");
+String postMessage = String("{'chip_id' : 'rohitesp', 'power' : '2'}");
+int httpCode = http.POST(postMessage);
+Serial.println(httpCode);
+//http.POST ("{Name:'Sean'}");
+http.writeToStream(&Serial);
+http.end();
+
 
   pinMode (lowPin, INPUT_PULLUP);
   pinMode (highPin, INPUT_PULLUP);
@@ -98,29 +93,7 @@ void loop() {
   digitalWrite (outPutPin, LOW);
   Serial.println(digitalRead(outPutPin));
   delay(1000);
-
-  ///////////////
-
-  Serial.println("making POST request");
-  String contentType = "Content-Type", "application/json";
-  String postData = "{'name': 'Sean'}";
-
-  client.post("/", contentType, postData);
-
-  // read the status code and body of the response
-  statusCode = client.responseStatusCode();
-  response = client.responseBody();
-
-  Serial.print("Status code: ");
-  Serial.println(statusCode);
-  Serial.print("Response: ");
-  Serial.println(response);
-
-  Serial.println("Wait five seconds");
-  delay(5000);
-
-
-  ///////////////
+  
   
   Serial.println("Going into deep sleep for 10 seconds"); 
   ESP.deepSleep(10e6);
