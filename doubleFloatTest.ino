@@ -23,29 +23,7 @@ void setup() {
   WiFiManager wifiManager; // init wifi manager
   wifiManager.autoConnect("AutoConnectAP", "h2osensor");
   Serial.println("Connected..");
-
-//Setup HTTP Client - Send sensor data to server
-
-HTTPClient http;
-Serial.println("[HTTP] begin...\n");
-http.begin("http://192.168.0.108");
-//http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-//http.POST("title=foo&body=bar&userId=1");
-int httpCode = http.GET()
-if(httpCode > 0) {
-  // HTTP header has been send and Server response header has been handled
-  Serial.println("[HTTP] GET... code: %d\n", httpCode);
-
-  // file found at server
-  if(httpCode == HTTP_CODE_OK) {
-	String payload = http.getString();
-	Serial.println(payload);
-  }
-} else {
-  Serial.println("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-}
-//http.writeToStream(&Serial);
-http.end();
+  delay(3000);
 
 
   pinMode (lowPin, INPUT_PULLUP);
@@ -81,11 +59,33 @@ http.end();
 }
 
 void loop() {
+  
+  //Setup HTTP Client - Send sensor data to server
+  
+  HTTPClient http;
+  
+  Serial.println("[HTTP] begin...\n");
+  http.begin("192.168.0.108",3333,"/");
+  //http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  //http.POST("title=foo&body=bar&userId=1");
+  int httpCode = http.GET();
   if(httpCode > 0) {
     // HTTP header has been send and Server response header has been handled
-    Serial.println("[HTTP] POST... code: %d\n", httpCode);
-  } 
+    Serial.print("HTTP Code: ");
+    Serial.println(httpCode);
+  
+    // file found at server
+    if(httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      Serial.println(payload);
+    }
+  } else {
+    Serial.print("HTTP Error: ");
+    Serial.println(http.errorToString(httpCode).c_str());
+  }
+  http.end();
 
+  
   if (digitalRead (lowPin) == LOW)
   {Serial.println ("Low Open");}
   else 
