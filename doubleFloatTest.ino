@@ -9,37 +9,28 @@
 #include <ESP8266HTTPClient.h>
 
 
-
 int lowPin = 5;    // D1
 int highPin = 2;   // D4
 int outPutPin = 4;  // D2
-
 
 
 void setup() {
   Serial.begin (115200);
 
 
-
-
-
-
-  
-
   //WiFi.disconnect();  //remove this before sending to Hal
   
   WiFiManager wifiManager; // init wifi manager
-  wifiManager.autoConnect("AutoConnectAP");
+  wifiManager.autoConnect("AutoConnectAP", "h2osensor");
   Serial.println("Connected..");
 
+//Setup HTTP Client - Send sensor data to server
 
+Serial.println("[HTTP] begin...\n");
 HTTPClient http;
 http.begin("http://192.168.0.108:3333");
-http.addHeader("Content-Type", "application/json");
-String postMessage = String("{'chip_id' : 'rohitesp', 'power' : '2'}");
-int httpCode = http.POST(postMessage);
-Serial.println(httpCode);
-//http.POST ("{Name:'Sean'}");
+http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+http.POST("title=foo&body=bar&userId=1");
 http.writeToStream(&Serial);
 http.end();
 
@@ -77,6 +68,11 @@ http.end();
 }
 
 void loop() {
+  if(httpCode > 0) {
+    // HTTP header has been send and Server response header has been handled
+    Serial.println("[HTTP] POST... code: %d\n", httpCode);
+  } 
+
   if (digitalRead (lowPin) == LOW)
   {Serial.println ("Low Open");}
   else 
