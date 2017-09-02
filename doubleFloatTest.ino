@@ -24,16 +24,13 @@ void setup() {
   wifiManager.autoConnect("AutoConnectAP", "h2osensor");
   Serial.println("Connected..");
 
-//Setup HTTP Client - Send sensor data to 
+//Setup HTTP Client - Send sensor data to server
 
 Serial.println("[HTTP] begin...\n");
 HTTPClient http;
 http.begin("http://192.168.0.108:3333");
-http.addHeader("Content-Type", "application/json");
-String postMessage = String("{'chip_id' : 'rohitesp', 'power' : '2'}");
-int httpCode = http.POST(postMessage);
-Serial.println(httpCode);
-//http.POST ("{Name:'Sean'}");
+http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+http.POST("title=foo&body=bar&userId=1");
 http.writeToStream(&Serial);
 http.end();
 
