@@ -22,15 +22,10 @@ void setup() {
   WiFi.disconnect();  //remove this before sending to Hal
   
   WiFiManager wifiManager; // init wifi manager
-  //wifiManager.resetSettings();
-  //WiFiManagerParameter custom_text("<p>Create a text box for server IP here</p>");
-  //wifiManager.addParameter(&custom_text);
 
-  //IPAddress _ip = IPAddress(108, 161, 21, 27);
-  //IPAddress _gw = IPAddress(10, 0, 1, 1); //gateway IP
-  //IPAddress _sn = IPAddress(255, 255, 255, 0); //serial number?
+  WiFiManagerParameter custom_text("<p>Create a text box for server IP here</p>");
+  wifiManager.addParameter(&custom_text);
 
-  //wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
   
   wifiManager.autoConnect("h2oSensor", "h2osensor");
   Serial.println("Connected..");
