@@ -1,3 +1,5 @@
+
+
 #include <ArduinoHttpClient.h>
 
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
@@ -29,8 +31,7 @@ void setup() {
 HTTPClient http;
 Serial.println("[HTTP] begin...\n");
 http.begin("http://192.168.0.108");
-//http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-//http.POST("title=foo&body=bar&userId=1");
+
 int httpCode = http.GET()
 if(httpCode > 0) {
   // HTTP header has been send and Server response header has been handled
