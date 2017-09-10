@@ -1,13 +1,17 @@
+<<<<<<< HEAD
 
 
 #include <ArduinoHttpClient.h>
+=======
+#include <Time.h>
+#include <TimeLib.h>
+>>>>>>> seanbass/master
 
+#include <ArduinoHttpClient.h>
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>  
-
 #include <ESP8266HTTPClient.h>
 
 
@@ -17,15 +21,15 @@ int outPutPin = 4;  // D2
 
 
 void setup() {
+
   Serial.begin (115200);
 
 
-  //WiFi.disconnect();  //remove this before sending to Hal
+  WiFi.disconnect();  //remove this before sending to Hal
   
   WiFiManager wifiManager; // init wifi manager
-  wifiManager.autoConnect("AutoConnectAP", "h2osensor");
-  Serial.println("Connected..");
 
+<<<<<<< HEAD
 //Setup HTTP Client - Send sensor data to server
 
 HTTPClient http;
@@ -47,6 +51,15 @@ if(httpCode > 0) {
 }
 //http.writeToStream(&Serial);
 http.end();
+=======
+  WiFiManagerParameter custom_text("<p>Create a text box for server IP here</p>");
+  wifiManager.addParameter(&custom_text);
+
+  
+  wifiManager.autoConnect("h2oSensor", "h2osensor");
+  Serial.println("Connected..");
+  delay(3000);
+>>>>>>> seanbass/master
 
 
   pinMode (lowPin, INPUT_PULLUP);
@@ -76,17 +89,41 @@ http.end();
   // Wait for serial to initialize.
   while(!Serial) { }
   Serial.println("I'm awake.");
-
-
-  
+ 
 }
 
 void loop() {
-  if(httpCode > 0) {
-    // HTTP header has been send and Server response header has been handled
-    Serial.println("[HTTP] POST... code: %d\n", httpCode);
-  } 
 
+  int lowLevel = digitalRead (lowPin);
+  int highLevel = digitalRead (highPin);
+
+  //String date = "";
+
+  //String d_id = "";
+
+  String low = "\"Low\": ";
+  low += lowLevel;
+  low.concat (", ");
+
+  String high = "\"High\": ";
+  high += highLevel;
+
+  String json = "{";
+  json += low += high += "}";
+  Serial.println(json);
+   
+   
+  //Setup HTTP Client - Send sensor data to server
+  
+  HTTPClient http;
+    
+  Serial.println("[HTTP] begin...\n");
+  http.begin("192.168.0.108",3333,"/");
+  http.addHeader("Content-Type", "application/json");
+  http.POST(json);
+  http.end();
+
+  
   if (digitalRead (lowPin) == LOW)
   {Serial.println ("Low Open");}
   else 
@@ -103,7 +140,8 @@ void loop() {
   digitalWrite (outPutPin, LOW);
   Serial.println(digitalRead(outPutPin));
   delay(1000);
-  
+
+
   
   Serial.println("Going into deep sleep for 10 seconds"); 
   ESP.deepSleep(10e6);
