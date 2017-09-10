@@ -1,4 +1,3 @@
-
 #include <FS.h>
 #include <ArduinoHttpClient.h>
 
@@ -12,9 +11,11 @@
 #include <WiFiManager.h>  
 #include <ESP8266HTTPClient.h>
 
+#include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
+
 //define your default values here
 char server[40];
-char port[6] = "3333";
+char port[6];
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -74,8 +75,9 @@ void setup() {
      }
      //end read
 
-     WiFiManagerParameter server("server", "server", server, 40);
-     WiFiManagerParameter port("port", "port", port, 6);
+    WiFiManagerParameter custom_server("server", "server", server, 40);
+    WiFiManagerParameter custom_port("port", "port", port, 6);
+
     //FILE SYSTEM END
 
   //WiFi.disconnect();  //remove this before sending to Hal
@@ -86,8 +88,8 @@ void setup() {
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
   //add all your parameters here
-  wifiManager.addParameter(&server);
-  wifiManager.addParameter(&port);
+  wifiManager.addParameter(&custom_server);
+  wifiManager.addParameter(&custom_port);
 
   
   wifiManager.autoConnect("h2oSensor", "h2osensor");
@@ -95,8 +97,8 @@ void setup() {
   delay(3000);
 
   //read updated parameters
-  strcpy(server, server.getValue());
-  strcpy(port, port.getValue());
+  strcpy(server, custom_server.getValue());
+  strcpy(port, custom_port.getValue());
 
   //save the custom parameters to FS
   if (shouldSaveConfig) {
@@ -145,11 +147,8 @@ void setup() {
   // Wait for serial to initialize.
   while(!Serial) { }
   Serial.println("I'm awake.");
- 
-}
 
-void loop() {
-
+  
   int lowLevel = digitalRead (lowPin);
   int highLevel = digitalRead (highPin);
 
@@ -172,12 +171,28 @@ void loop() {
   //Setup HTTP Client - Send sensor data to server
   
   HTTPClient http;
+
+  char *_server = strcpy(server, custom_server.getValue());
+  char *_port = strcpy(port, custom_port.getValue());
+
+  std::string s(_server);
+  
+  Serial.print("Server: ");
+  Serial.println(_server);
+  Serial.print("Port: ");
+  Serial.println(_port);
+  
     
   Serial.println("[HTTP] begin...\n");
-  http.begin("192.168.0.108",3333,"/");
+  http.begin(_server,3333,"/");
   http.addHeader("Content-Type", "application/json");
   http.POST(json);
   http.end();
+ 
+}
+
+void loop() {
+
 
   
   if (digitalRead (lowPin) == LOW)
