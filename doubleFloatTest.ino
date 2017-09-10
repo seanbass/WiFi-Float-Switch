@@ -1,11 +1,9 @@
-<<<<<<< HEAD
 
-
+#include <FS.h>
 #include <ArduinoHttpClient.h>
-=======
+
 #include <Time.h>
 #include <TimeLib.h>
->>>>>>> seanbass/master
 
 #include <ArduinoHttpClient.h>
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
@@ -13,6 +11,19 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>  
 #include <ESP8266HTTPClient.h>
+
+//define your default values here
+char server[40];
+char port[6] = "3333";
+
+//flag for saving data
+bool shouldSaveConfig = false;
+
+//callback notifying us of the need to save config
+void saveConfigCallback () {
+  Serial.println("Should save config");
+  shouldSaveConfig = true;
+}
 
 
 int lowPin = 5;    // D1
@@ -24,42 +35,87 @@ void setup() {
 
   Serial.begin (115200);
 
+  //clean FS, for testing
+  //SPIFFS.format();
 
-  WiFi.disconnect();  //remove this before sending to Hal
+  //FILE SYSTEM START
+   //read configuration from FS json
+   Serial.println("mounting FS...");
+   
+     if (SPIFFS.begin()) {
+       Serial.println("mounted file system");
+       if (SPIFFS.exists("/config.json")) {
+         //file exists, reading and loading
+         Serial.println("reading config file");
+         File configFile = SPIFFS.open("/config.json", "r");
+         if (configFile) {
+           Serial.println("opened config file");
+           size_t size = configFile.size();
+           // Allocate a buffer to store contents of the file.
+           std::unique_ptr<char[]> buf(new char[size]);
+   
+           configFile.readBytes(buf.get(), size);
+           DynamicJsonBuffer jsonBuffer;
+           JsonObject& json = jsonBuffer.parseObject(buf.get());
+           json.printTo(Serial);
+           if (json.success()) {
+             Serial.println("\nparsed json");
+   
+             strcpy(server, json["server"]);
+             strcpy(port, json["port"]);
+   
+           } else {
+             Serial.println("failed to load json config");
+           }
+         }
+       }
+     } else {
+       Serial.println("failed to mount FS");
+     }
+     //end read
+
+     WiFiManagerParameter server("server", "server", server, 40);
+     WiFiManagerParameter port("port", "port", port, 6);
+    //FILE SYSTEM END
+
+  //WiFi.disconnect();  //remove this before sending to Hal
   
   WiFiManager wifiManager; // init wifi manager
 
-<<<<<<< HEAD
-//Setup HTTP Client - Send sensor data to server
+  //set config save notify callback
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-HTTPClient http;
-Serial.println("[HTTP] begin...\n");
-http.begin("http://192.168.0.108");
-
-int httpCode = http.GET()
-if(httpCode > 0) {
-  // HTTP header has been send and Server response header has been handled
-  Serial.println("[HTTP] GET... code: %d\n", httpCode);
-
-  // file found at server
-  if(httpCode == HTTP_CODE_OK) {
-	String payload = http.getString();
-	Serial.println(payload);
-  }
-} else {
-  Serial.println("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-}
-//http.writeToStream(&Serial);
-http.end();
-=======
-  WiFiManagerParameter custom_text("<p>Create a text box for server IP here</p>");
-  wifiManager.addParameter(&custom_text);
+  //add all your parameters here
+  wifiManager.addParameter(&server);
+  wifiManager.addParameter(&port);
 
   
   wifiManager.autoConnect("h2oSensor", "h2osensor");
   Serial.println("Connected..");
   delay(3000);
->>>>>>> seanbass/master
+
+  //read updated parameters
+  strcpy(server, server.getValue());
+  strcpy(port, port.getValue());
+
+  //save the custom parameters to FS
+  if (shouldSaveConfig) {
+    Serial.println("saving config");
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject& json = jsonBuffer.createObject();
+    json["server"] = server;
+    json["port"] = port;
+
+    File configFile = SPIFFS.open("/config.json", "w");
+    if (!configFile) {
+      Serial.println("failed to open config file for writing");
+    }
+
+    json.printTo(Serial);
+    json.printTo(configFile);
+    configFile.close();
+    //end save
+  }
 
 
   pinMode (lowPin, INPUT_PULLUP);
