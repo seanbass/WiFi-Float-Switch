@@ -1,7 +1,7 @@
 #include <FS.h>
 #include <ArduinoHttpClient.h> //v0.3.0
 
-#include <Time.h>
+#include <TimeLib.h>              https://github.com/PaulStoffregen/Time
 
 #include <ESP8266WiFi.h>          //http://esp8266.github.io/Arduino/versions/2.3.0/
 #include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal
@@ -192,7 +192,7 @@ void setup() {
 
 void loop() {
 
-
+  timeStatus();
   
   if (digitalRead (lowPin) == LOW)
   {Serial.println ("Low Open");}
